@@ -107,89 +107,29 @@
     <div class="prayer-list" id="prayerRequestsContainer"></div>
   </div>
 
-  <!-- ✅ FIXED Firebase Setup -->
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js"></script>
+<!-- ✅ Load Firebase the correct way (No import needed) -->
+<script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js"></script>
 
-  <script>
-    // ✅ Firebase Config (DO NOT CHANGE)
-    const firebaseConfig = {
-      apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
-      authDomain: "cp-prayer.firebaseapp.com",
-      databaseURL: "https://cp-prayer-default-rtdb.firebaseio.com",
-      projectId: "cp-prayer",
-      storageBucket: "cp-prayer.firebasestorage.app",
-      messagingSenderId: "18312450201",
-      appId: "1:18312450201:web:9258cbcb87b384f2e42808"
-    };
+<script>
+  // ✅ Your Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
+    authDomain: "cp-prayer.firebaseapp.com",
+    databaseURL: "https://cp-prayer-default-rtdb.firebaseio.com",
+    projectId: "cp-prayer",
+    storageBucket: "cp-prayer.firebasestorage.app",
+    messagingSenderId: "18312450201",
+    appId: "1:18312450201:web:9258cbcb87b384f2e42808"
+  };
 
-    // ✅ Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const requestsRef = db.ref("prayerRequests");
+  // ✅ Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const requestsRef = db.ref("prayerRequests");
 
-    console.log("✅ Firebase Loaded:", firebase);
+  console.log("✅ Firebase Loaded:", firebase);
+</script>
 
-    // ✅ DOM Elements
-    const prayerRequestForm = document.getElementById("prayerRequestForm");
-    const nameInput = document.getElementById("name");
-    const requestInput = document.getElementById("request");
-    const prayerRequestsContainer = document.getElementById("prayerRequestsContainer");
-
-    // ✅ Add Prayer Request
-    prayerRequestForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const nameValue = nameInput.value.trim();
-      const requestValue = requestInput.value.trim();
-
-      if (nameValue && requestValue) {
-        const newRef = requestsRef.push();
-        newRef.set({
-          name: nameValue,
-          text: requestValue,
-          date: new Date().toLocaleString()
-        });
-
-        nameInput.value = "";
-        requestInput.value = "";
-      }
-    });
-
-    // ✅ Listen for Changes & Render Requests
-    requestsRef.on("value", (snapshot) => {
-      const data = snapshot.val();
-      prayerRequestsContainer.innerHTML = "";
-
-      if (data) {
-        Object.entries(data).forEach(([id, requestObj]) => {
-          const { name, text, date } = requestObj;
-
-          const item = document.createElement("div");
-          item.classList.add("prayer-item");
-
-          const header = document.createElement("div");
-          header.classList.add("prayer-header");
-
-          const nameHeading = document.createElement("h3");
-          nameHeading.textContent = name || "Anonymous";
-
-          const dateEl = document.createElement("p");
-          dateEl.textContent = date || "";
-
-          header.appendChild(nameHeading);
-          header.appendChild(dateEl);
-
-          const content = document.createElement("div");
-          content.classList.add("prayer-content");
-          content.textContent = text;
-
-          item.appendChild(header);
-          item.appendChild(content);
-
-          prayerRequestsContainer.appendChild(item);
-        });
-      }
-    });
-  </script>
 </body>
 </html>
