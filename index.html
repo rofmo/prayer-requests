@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Prayer Requests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* ===================== Basic Reset & Styles ===================== */
     * {
       margin: 0;
       padding: 0;
@@ -38,13 +38,6 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
 
-    .container h2 {
-      margin-bottom: 1rem;
-      font-size: 1.25rem;
-      border-bottom: 1px solid #e0e0e0;
-      padding-bottom: 0.5rem;
-    }
-
     form {
       display: flex;
       flex-direction: column;
@@ -52,8 +45,7 @@
       margin-bottom: 1rem;
     }
 
-    form input[type="text"],
-    form textarea {
+    form input, form textarea {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid #ccc;
@@ -70,10 +62,6 @@
       font-size: 1rem;
       cursor: pointer;
       transition: background-color 0.3s;
-    }
-
-    form button:hover {
-      background-color: #bbb;
     }
 
     .prayer-list {
@@ -96,22 +84,6 @@
       margin-bottom: 0.5rem;
     }
 
-    .prayer-header h3 {
-      font-size: 1.1rem;
-      margin: 0;
-    }
-
-    .prayer-header p {
-      font-size: 0.85rem;
-      color: #777;
-      margin: 0;
-    }
-
-    .prayer-content {
-      white-space: pre-wrap;
-      margin-bottom: 0.75rem;
-    }
-
     .prayer-actions button {
       margin-right: 0.5rem;
       padding: 0.5rem 1rem;
@@ -122,11 +94,6 @@
       transition: background-color 0.3s;
     }
 
-    .prayer-actions button:hover {
-      background-color: #ccc;
-    }
-
-    /* ✅ Fix: Hide Edit Modal By Default */
     .modal {
       display: none;
       position: fixed;
@@ -143,7 +110,6 @@
       border-radius: 5px;
       width: 300px;
     }
-
   </style>
 </head>
 <body>
@@ -160,16 +126,13 @@
     </form>
 
     <h2>Current Requests</h2>
-    <div class="prayer-list" id="prayerRequestsContainer">
-      <!-- Prayer items will go here -->
-    </div>
+    <div class="prayer-list" id="prayerRequestsContainer"></div>
   </div>
 
   <footer>
     <p>Prayer Request App &copy; 2025</p>
   </footer>
 
-  <!-- ✅ Edit Modal -->
   <div class="modal" id="editModal">
     <div class="modal-content">
       <h3>Edit Your Prayer Request</h3>
@@ -180,12 +143,10 @@
     </div>
   </div>
 
-  <!-- ✅ Correct Firebase Scripts (Fixed Version) -->
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database-compat.js"></script>
 
   <script>
-    // ✅ Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
       authDomain: "cp-prayer.firebaseapp.com",
@@ -196,8 +157,8 @@
       appId: "1:18312450201:web:9258cbcb87b384f2e42808"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     const requestsRef = db.ref("prayerRequests");
 
     const prayerRequestForm = document.getElementById("prayerRequestForm");
@@ -211,47 +172,21 @@
       event.preventDefault();
       const nameValue = nameInput.value.trim();
       const requestValue = requestInput.value.trim();
+      if (!nameValue || !requestValue) return alert("⚠️ Please fill in all fields!");
 
-      if (nameValue && requestValue) {
-        const newRef = requestsRef.push();
-        newRef.set({
-          id: newRef.key,
-          name: nameValue,
-          text: requestValue,
-          date: new Date().toLocaleString()
-        });
-
-        nameInput.value = "";
-        requestInput.value = "";
-      }
+      const newRef = requestsRef.push();
+      newRef.set({ id: newRef.key, name: nameValue, text: requestValue, date: new Date().toLocaleString() })
+        .then(() => { nameInput.value = ""; requestInput.value = ""; });
     });
 
-    function deleteRequest(id) {
-      if (confirm("Are you sure you want to delete this prayer request?")) {
-        requestsRef.child(id).remove()
-        .then(() => console.log(`✅ Deleted request: ${id}`))
-        .catch(error => console.error("❌ Delete Failed:", error));
-      }
-    }
+    requestsRef.on("value", (snapshot) => {
+      prayerRequestsContainer.innerHTML = "";
+      const data = snapshot.val();
+      if (!data) return;
 
-    function editRequest(id, name, text) {
-      currentEditId = id;
-      document.getElementById("editName").value = name;
-      document.getElementById("editText").value = text;
-      document.getElementById("editModal").style.display = "flex";
-    }
-
-    document.getElementById("saveEdit").addEventListener("click", function () {
-      const updatedName = document.getElementById("editName").value.trim();
-      const updatedText = document.getElementById("editText").value.trim();
-
-      if (currentEditId && updatedName && updatedText) {
-        requestsRef.child(currentEditId).update({ name: updatedName, text: updatedText })
-        .then(() => {
-          console.log(`✅ Updated request: ${currentEditId}`);
-          document.getElementById("editModal").style.display = "none"; // Hide modal
-        });
-      }
+      Object.entries(data).forEach(([id, requestObj]) => {
+        prayerRequestsContainer.innerHTML += `<div class="prayer-item"><h3>${requestObj.name}</h3><p>${requestObj.text}</p></div>`;
+      });
     });
   </script>
 </body>
