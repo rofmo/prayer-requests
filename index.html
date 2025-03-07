@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prayer Requests</title>
   <style>
     * {
@@ -12,65 +11,21 @@
     }
 
     body {
-  font-family: Arial, sans-serif;
-  background-color: #121829; /* Dark Navy */
-  color: #d6d6d6; /* Light Gray for readability */
-}
-
-/* Update Header */
-header {
-  background-color: #1a233a; /* Darker Navy */
-  color: #ffffff; /* White text */
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* Update Forms & Containers */
-.container {
-  background-color: #1a233a; /* Dark navy background */
-  color: #ffffff; /* White text */
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Inputs and Textareas */
-form input, form textarea {
-  background-color: #28314a; /* Dark blue input background */
-  color: #ffffff; /* White text */
-  border: 1px solid #3a4a6b; /* Soft blue border */
-}
-
-/* Update Buttons */
-form button, .prayer-actions button {
-  background-color: #3a4a6b; /* Darker Blue */
-  color: white;
-  border: none;
-  transition: background 0.3s ease;
-}
-
-form button:hover, .prayer-actions button:hover {
-  background-color: #4a5d84; /* Slightly brighter on hover */
-}
-
-/* Prayer Items */
-.prayer-item {
-  background-color: #222c44; /* Slightly lighter navy */
-  border: 1px solid #3a4a6b; /* Blue border */
-  border-radius: 5px;
-}
-
-/* Modal */
-.modal-content {
-  background-color: #1a233a; /* Darker modal background */
-  color: white;
-}
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+    }
 
     header {
       background-color: #f0f0f0;
       padding: 1rem;
       text-align: center;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: normal;
     }
 
     .container {
@@ -80,6 +35,13 @@ form button:hover, .prayer-actions button:hover {
       background-color: #fff;
       border-radius: 5px;
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .container h2 {
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 0.5rem;
     }
 
     form {
@@ -108,6 +70,10 @@ form button:hover, .prayer-actions button:hover {
       transition: background-color 0.3s;
     }
 
+    form button:hover {
+      background-color: #bbb;
+    }
+
     .prayer-list {
       display: flex;
       flex-direction: column;
@@ -128,6 +94,17 @@ form button:hover, .prayer-actions button:hover {
       margin-bottom: 0.5rem;
     }
 
+    .prayer-header h3 {
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    .prayer-header p {
+      font-size: 0.85rem;
+      color: #777;
+      margin: 0;
+    }
+
     .prayer-actions button {
       margin-right: 0.5rem;
       padding: 0.5rem 1rem;
@@ -136,6 +113,10 @@ form button:hover, .prayer-actions button:hover {
       background-color: #e0e0e0;
       cursor: pointer;
       transition: background-color 0.3s;
+    }
+
+    .prayer-actions button:hover {
+      background-color: #ccc;
     }
 
     .modal {
@@ -205,22 +186,6 @@ form button:hover, .prayer-actions button:hover {
     const db = firebase.database();
     const requestsRef = db.ref("prayerRequests");
 
-// ✅ Fix for Safari: Ensure Firebase stays online
-db.ref(".info/connected").on("value", (snapshot) => {
-  if (snapshot.val() === false) {
-    console.error("🚨 Firebase connection issue detected on Safari.");
-  }
-});
-
-// ✅ Force Firebase to persist session for iOS
-firebase.database().goOnline();
-
-// ✅ Debugging: Check if Firebase connection is stable
-firebase.database().ref(".info/serverTimeOffset").on("value", (offset) => {
-  console.log("⏳ Server Time Offset:", offset.val());
-});
-
-
     const prayerRequestForm = document.getElementById("prayerRequestForm");
     const nameInput = document.getElementById("name");
     const requestInput = document.getElementById("request");
@@ -236,8 +201,7 @@ firebase.database().ref(".info/serverTimeOffset").on("value", (offset) => {
 
       const newRef = requestsRef.push();
       newRef.set({ id: newRef.key, name: nameValue, text: requestValue, date: new Date().toLocaleString() })
-        .then(() => { nameInput.value = ""; requestInput.value = ""; })
-        .catch(error => console.error("❌ Submit Failed:", error));
+        .then(() => { nameInput.value = ""; requestInput.value = ""; });
     });
 
     requestsRef.on("value", (snapshot) => {
@@ -262,13 +226,7 @@ firebase.database().ref(".info/serverTimeOffset").on("value", (offset) => {
       });
     });
 
-    function deleteRequest(id) {
-      if (confirm("Delete request?")) {
-        requestsRef.child(id).remove()
-          .then(() => console.log(`✅ Deleted request: ${id}`))
-          .catch(error => console.error("❌ Delete Failed:", error));
-      }
-    }
+    function deleteRequest(id) { if (confirm("Delete request?")) requestsRef.child(id).remove(); }
     
     function editRequest(id, name, text) {
       currentEditId = id;
@@ -281,16 +239,9 @@ firebase.database().ref(".info/serverTimeOffset").on("value", (offset) => {
       const updatedName = document.getElementById("editName").value.trim();
       const updatedText = document.getElementById("editText").value.trim();
       if (currentEditId && updatedName && updatedText) {
-        requestsRef.child(currentEditId).update({ name: updatedName, text: updatedText })
-          .then(() => {
-            document.getElementById("editModal").style.display = "none";
-          })
-          .catch(error => console.error("❌ Edit Failed:", error));
+        requestsRef.child(currentEditId).update({ name: updatedName, text: updatedText });
+        document.getElementById("editModal").style.display = "none";
       }
-    });
-
-    document.getElementById("closeEdit").addEventListener("click", function () {
-      document.getElementById("editModal").style.display = "none";
     });
   </script>
 </body>
