@@ -156,6 +156,22 @@
     const db = firebase.database();
     const requestsRef = db.ref("prayerRequests");
 
+// ✅ Fix for Safari: Ensure Firebase stays online
+db.ref(".info/connected").on("value", (snapshot) => {
+  if (snapshot.val() === false) {
+    console.error("🚨 Firebase connection issue detected on Safari.");
+  }
+});
+
+// ✅ Force Firebase to persist session for iOS
+firebase.database().goOnline();
+
+// ✅ Debugging: Check if Firebase connection is stable
+firebase.database().ref(".info/serverTimeOffset").on("value", (offset) => {
+  console.log("⏳ Server Time Offset:", offset.val());
+});
+
+
     const prayerRequestForm = document.getElementById("prayerRequestForm");
     const nameInput = document.getElementById("name");
     const requestInput = document.getElementById("request");
