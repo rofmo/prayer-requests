@@ -247,7 +247,10 @@
 
       if (currentEditId && updatedName && updatedText) {
         requestsRef.child(currentEditId).update({ name: updatedName, text: updatedText })
-        .then(() => document.getElementById("editModal").style.display = "none"));
+        .then(() => {
+          console.log(`✅ Updated request: ${currentEditId}`);
+          document.getElementById("editModal").style.display = "none"; // Hide modal
+        });
       }
     });
   </script>
