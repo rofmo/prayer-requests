@@ -75,6 +75,13 @@
       background-color: #bbb;
     }
 
+@media (max-width: 768px) {
+  form button {
+    color: #333; /* Dark color for text */
+  }
+}
+
+    
     .prayer-list {
       display: flex;
       flex-direction: column;
@@ -130,17 +137,11 @@
       justify-content: center;
     }
 
-    /* Style for the textarea inside the modal */
-    #editModal textarea {
-      height: 200px; /* Adjusted height for larger textarea */
-      font-size: 1.1rem; /* Larger font size */
-      resize: vertical; /* Allow users to resize the textarea vertically */
-    }
-
-    /* Style to increase the size of the modal content */
     .modal-content {
-      width: 450px; /* Wider modal content */
-      padding: 25px;
+      background: white;
+      padding: 20px;
+      border-radius: 5px;
+      width: 300px;
     }
   </style>
 </head>
@@ -158,4 +159,98 @@
     </form>
 
     <h2>Current Requests</h2>
-    <
+    <div class="prayer-list" id="prayerRequestsContainer"></div>
+  </div>
+
+  <footer>
+    <p>Prayer Request App &copy; 2025</p>
+  </footer>
+
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3>Edit Your Prayer Request</h3>
+      <input type="text" id="editName" required />
+      <textarea id="editText" rows="4" required></textarea>
+      <button id="saveEdit">Save Changes</button>
+      
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
+      authDomain: "cp-prayer.firebaseapp.com",
+      databaseURL: "https://cp-prayer-default-rtdb.firebaseio.com",
+      projectId: "cp-prayer",
+      storageBucket: "cp-prayer.firebasestorage.app",
+      messagingSenderId: "18312450201",
+      appId: "1:18312450201:web:9258cbcb87b384f2e42808"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const requestsRef = db.ref("prayerRequests");
+
+    const prayerRequestForm = document.getElementById("prayerRequestForm");
+    const nameInput = document.getElementById("name");
+    const requestInput = document.getElementById("request");
+    const prayerRequestsContainer = document.getElementById("prayerRequestsContainer");
+
+    let currentEditId = null;
+
+    prayerRequestForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const nameValue = nameInput.value.trim();
+      const requestValue = requestInput.value.trim();
+      if (!nameValue || !requestValue) return alert("⚠️ Please fill in all fields!");
+
+      const newRef = requestsRef.push();
+      newRef.set({ id: newRef.key, name: nameValue, text: requestValue, date: new Date().toLocaleString() })
+        .then(() => { nameInput.value = ""; requestInput.value = ""; });
+    });
+
+    requestsRef.on("value", (snapshot) => {
+      prayerRequestsContainer.innerHTML = "";
+      const data = snapshot.val();
+      if (!data) return;
+
+      Object.entries(data).forEach(([id, requestObj]) => {
+        const { name, text, date } = requestObj;
+        const item = document.createElement("div");
+        item.classList.add("prayer-item");
+
+        item.innerHTML = `
+          <div class="prayer-header"><h3>${name}</h3><p>${date}</p></div>
+          <div class="prayer-content">${text}</div>
+          <div class="prayer-actions">
+            <button onclick="editRequest('${id}', '${name}', '${text}')">Edit</button>
+            <button onclick="deleteRequest('${id}')">Delete</button>
+          </div>
+        `;
+        prayerRequestsContainer.appendChild(item);
+      });
+    });
+
+    function deleteRequest(id) { if (confirm("Delete request?")) requestsRef.child(id).remove(); }
+    
+    function editRequest(id, name, text) {
+      currentEditId = id;
+      document.getElementById("editName").value = name;
+      document.getElementById("editText").value = text;
+      document.getElementById("editModal").style.display = "flex";
+    }
+
+    document.getElementById("saveEdit").addEventListener("click", function () {
+      const updatedName = document.getElementById("editName").value.trim();
+      const updatedText = document.getElementById("editText").value.trim();
+      if (currentEditId && updatedName && updatedText) {
+        requestsRef.child(currentEditId).update({ name: updatedName, text: updatedText });
+        document.getElementById("editModal").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
