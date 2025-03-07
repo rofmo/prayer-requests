@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prayer Requests</title>
   <style>
     * {
@@ -23,11 +24,6 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    header h1 {
-      font-size: 1.75rem;
-      font-weight: normal;
-    }
-
     .container {
       max-width: 600px;
       margin: 2rem auto;
@@ -35,13 +31,6 @@
       background-color: #fff;
       border-radius: 5px;
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-
-    .container h2 {
-      margin-bottom: 1rem;
-      font-size: 1.25rem;
-      border-bottom: 1px solid #e0e0e0;
-      padding-bottom: 0.5rem;
     }
 
     form {
@@ -70,10 +59,6 @@
       transition: background-color 0.3s;
     }
 
-    form button:hover {
-      background-color: #bbb;
-    }
-
     .prayer-list {
       display: flex;
       flex-direction: column;
@@ -94,17 +79,6 @@
       margin-bottom: 0.5rem;
     }
 
-    .prayer-header h3 {
-      font-size: 1.1rem;
-      margin: 0;
-    }
-
-    .prayer-header p {
-      font-size: 0.85rem;
-      color: #777;
-      margin: 0;
-    }
-
     .prayer-actions button {
       margin-right: 0.5rem;
       padding: 0.5rem 1rem;
@@ -113,10 +87,6 @@
       background-color: #e0e0e0;
       cursor: pointer;
       transition: background-color 0.3s;
-    }
-
-    .prayer-actions button:hover {
-      background-color: #ccc;
     }
 
     .modal {
@@ -201,7 +171,8 @@
 
       const newRef = requestsRef.push();
       newRef.set({ id: newRef.key, name: nameValue, text: requestValue, date: new Date().toLocaleString() })
-        .then(() => { nameInput.value = ""; requestInput.value = ""; });
+        .then(() => { nameInput.value = ""; requestInput.value = ""; })
+        .catch(error => console.error("❌ Submit Failed:", error));
     });
 
     requestsRef.on("value", (snapshot) => {
@@ -226,7 +197,13 @@
       });
     });
 
-    function deleteRequest(id) { if (confirm("Delete request?")) requestsRef.child(id).remove(); }
+    function deleteRequest(id) {
+      if (confirm("Delete request?")) {
+        requestsRef.child(id).remove()
+          .then(() => console.log(`✅ Deleted request: ${id}`))
+          .catch(error => console.error("❌ Delete Failed:", error));
+      }
+    }
     
     function editRequest(id, name, text) {
       currentEditId = id;
@@ -239,9 +216,16 @@
       const updatedName = document.getElementById("editName").value.trim();
       const updatedText = document.getElementById("editText").value.trim();
       if (currentEditId && updatedName && updatedText) {
-        requestsRef.child(currentEditId).update({ name: updatedName, text: updatedText });
-        document.getElementById("editModal").style.display = "none";
+        requestsRef.child(currentEditId).update({ name: updatedName, text: updatedText })
+          .then(() => {
+            document.getElementById("editModal").style.display = "none";
+          })
+          .catch(error => console.error("❌ Edit Failed:", error));
       }
+    });
+
+    document.getElementById("closeEdit").addEventListener("click", function () {
+      document.getElementById("editModal").style.display = "none";
     });
   </script>
 </body>
