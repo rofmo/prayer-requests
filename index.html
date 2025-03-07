@@ -226,42 +226,14 @@
       }
     });
 
-    requestsRef.on("value", (snapshot) => {
-      prayerRequestsContainer.innerHTML = "";
-      const data = snapshot.val();
-
-      if (data) {
-        Object.entries(data).forEach(([id, requestObj]) => {
-          const { name, text, date } = requestObj;
-          const item = document.createElement("div");
-          item.classList.add("prayer-item");
-
-          item.innerHTML = `
-            <div class="prayer-header">
-              <h3>${name}</h3>
-              <p>${date}</p>
-            </div>
-            <div class="prayer-content">${text}</div>
-            <div class="prayer-actions">
-              <button onclick="editRequest('${id}', '${name}', '${text}')">Edit</button>
-              <button onclick="deleteRequest('${id}')">Delete</button>
-            </div>
-          `;
-          prayerRequestsContainer.appendChild(item);
-        });
-      }
-    });
-
-
     function deleteRequest(id) {
-   if (confirm("Are you sure you want to delete this prayer request?")) {
-      requestsRef.child(id).remove()
-      .then(() => console.log(`✅ Deleted request: ${id}`))
-      .catch(error => console.error("❌ Delete Failed:", error));
-   }
-}
+      if (confirm("Are you sure you want to delete this prayer request?")) {
+        requestsRef.child(id).remove()
+        .then(() => console.log(`✅ Deleted request: ${id}`))
+        .catch(error => console.error("❌ Delete Failed:", error));
+      }
+    }
 
-    
     function editRequest(id, name, text) {
       currentEditId = id;
       document.getElementById("editName").value = name;
@@ -269,8 +241,14 @@
       document.getElementById("editModal").style.display = "flex";
     }
 
-    document.getElementById("closeEdit").addEventListener("click", () => {
-      document.getElementById("editModal").style.display = "none";
+    document.getElementById("saveEdit").addEventListener("click", function () {
+      const updatedName = document.getElementById("editName").value.trim();
+      const updatedText = document.getElementById("editText").value.trim();
+
+      if (currentEditId && updatedName && updatedText) {
+        requestsRef.child(currentEditId).update({ name: updatedName, text: updatedText })
+        .then(() => document.getElementById("editModal").style.display = "none"));
+      }
     });
   </script>
 </body>
