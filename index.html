@@ -252,6 +252,16 @@
       }
     });
 
+
+    function deleteRequest(id) {
+   if (confirm("Are you sure you want to delete this prayer request?")) {
+      requestsRef.child(id).remove()
+      .then(() => console.log(`✅ Deleted request: ${id}`))
+      .catch(error => console.error("❌ Delete Failed:", error));
+   }
+}
+
+    
     function editRequest(id, name, text) {
       currentEditId = id;
       document.getElementById("editName").value = name;
