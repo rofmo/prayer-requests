@@ -180,10 +180,9 @@
     </div>
   </div>
 
-  <!-- ✅ Correct Firebase Scripts (Must Be At The END of <body>) -->
+  <!-- ✅ Correct Firebase Scripts (Fixed Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js"></script>
-
 
   <script>
     // ✅ Firebase Configuration
@@ -199,7 +198,6 @@
 
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database(app);
-
     const requestsRef = db.ref("prayerRequests");
 
     const prayerRequestForm = document.getElementById("prayerRequestForm");
