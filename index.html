@@ -181,85 +181,27 @@
     </div>
   </div>
 
-  <!-- ============== Firebase SDK (Fixed & Working) ============== -->
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database-compat.js"></script>
+<!-- ✅ Correct Firebase Scripts (Must Be At The END of <body>) -->
+<script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database-compat.js"></script>
 
-  <script>
-    // ✅ Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
-      authDomain: "cp-prayer.firebaseapp.com",
-      databaseURL: "https://cp-prayer-default-rtdb.firebaseio.com",
-      projectId: "cp-prayer",
-      storageBucket: "cp-prayer.firebasestorage.app",
-      messagingSenderId: "18312450201",
-      appId: "1:18312450201:web:9258cbcb87b384f2e42808"
-    };
+<script>
+  // ✅ Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
+    authDomain: "cp-prayer.firebaseapp.com",
+    databaseURL: "https://cp-prayer-default-rtdb.firebaseio.com",
+    projectId: "cp-prayer",
+    storageBucket: "cp-prayer.firebasestorage.app",
+    messagingSenderId: "18312450201",
+    appId: "1:18312450201:web:9258cbcb87b384f2e42808"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const requestsRef = db.ref("prayerRequests");
+  // ✅ Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  console.log("✅ Firebase Successfully Initialized");
+</script>
 
-    const prayerRequestForm = document.getElementById("prayerRequestForm");
-    const nameInput = document.getElementById("name");
-    const requestInput = document.getElementById("request");
-    const prayerRequestsContainer = document.getElementById("prayerRequestsContainer");
-
-    prayerRequestForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const nameValue = nameInput.value.trim();
-      const requestValue = requestInput.value.trim();
-
-      if (nameValue && requestValue) {
-        const newRef = requestsRef.push();
-        newRef.set({
-          id: newRef.key,
-          name: nameValue,
-          text: requestValue,
-          date: new Date().toLocaleString()
-        });
-
-        nameInput.value = "";
-        requestInput.value = "";
-      }
-    });
-
-    requestsRef.on("value", (snapshot) => {
-      prayerRequestsContainer.innerHTML = "";
-      const data = snapshot.val();
-
-      if (data) {
-        Object.entries(data).forEach(([id, requestObj]) => {
-          const { name, text, date } = requestObj;
-          const item = document.createElement("div");
-          item.classList.add("prayer-item");
-
-          item.innerHTML = `
-            <div class="prayer-header">
-              <h3>${name}</h3>
-              <p>${date}</p>
-            </div>
-            <div class="prayer-content">${text}</div>
-            <div class="prayer-actions">
-              <button onclick="editRequest('${id}', '${name}', '${text}')">Edit</button>
-              <button onclick="deleteRequest('${id}')">Delete</button>
-            </div>
-          `;
-          prayerRequestsContainer.appendChild(item);
-        });
-      }
-    });
-
-    function editRequest(id, name, text) {
-      document.getElementById("editName").value = name;
-      document.getElementById("editText").value = text;
-      document.getElementById("editModal").style.display = "flex";
-    }
-
-    function deleteRequest(id) {
-      requestsRef.child(id).remove();
-    }
-  </script>
 </body>
 </html>
