@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Prayer Requests</title>
   <style>
-    /* ===================== Basic Reset & Styles ===================== */
     * {
       margin: 0;
       padding: 0;
@@ -24,11 +23,6 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    header h1 {
-      font-size: 1.75rem;
-      font-weight: normal;
-    }
-
     .container {
       max-width: 600px;
       margin: 2rem auto;
@@ -38,13 +32,6 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
 
-    .container h2 {
-      margin-bottom: 1rem;
-      font-size: 1.25rem;
-      border-bottom: 1px solid #e0e0e0;
-      padding-bottom: 0.5rem;
-    }
-
     form {
       display: flex;
       flex-direction: column;
@@ -52,8 +39,7 @@
       margin-bottom: 1rem;
     }
 
-    form input[type="text"],
-    form textarea {
+    input, textarea {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid #ccc;
@@ -61,19 +47,13 @@
       font-size: 1rem;
     }
 
-    form button {
-      align-self: flex-start;
-      padding: 0.75rem 1.5rem;
+    button {
+      padding: 0.75rem;
       border: none;
       border-radius: 3px;
       background-color: #ccc;
       font-size: 1rem;
       cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    form button:hover {
-      background-color: #bbb;
     }
 
     .prayer-list {
@@ -92,8 +72,6 @@
     .prayer-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
     }
 
     .prayer-header h3 {
@@ -104,39 +82,12 @@
     .prayer-header p {
       font-size: 0.85rem;
       color: #777;
-      margin: 0;
     }
 
     .prayer-content {
       white-space: pre-wrap;
-      margin-bottom: 0.75rem;
     }
 
-    .prayer-actions button {
-      margin-right: 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 3px;
-      background-color: #e0e0e0;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .prayer-actions button:hover {
-      background-color: #ccc;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1rem 0;
-      background-color: #f0f0f0;
-      margin-top: 2rem;
-    }
-
-    footer p {
-      font-size: 0.9rem;
-      color: #777;
-    }
   </style>
 </head>
 <body>
@@ -153,21 +104,15 @@
     </form>
 
     <h2>Current Requests</h2>
-    <div class="prayer-list" id="prayerRequestsContainer">
-      <!-- Prayer items will go here -->
-    </div>
+    <div class="prayer-list" id="prayerRequestsContainer"></div>
   </div>
 
-  <footer>
-    <p>Prayer Request App &copy; 2025</p>
-  </footer>
-
-  <!-- ============== Firebase SDK (Fixed & Working) ============== -->
+  <!-- ✅ FIXED Firebase Setup -->
   <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js"></script>
 
   <script>
-    // ✅ Firebase Configuration
+    // ✅ Firebase Config (DO NOT CHANGE)
     const firebaseConfig = {
       apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
       authDomain: "cp-prayer.firebaseapp.com",
@@ -183,7 +128,6 @@
     const db = firebase.database();
     const requestsRef = db.ref("prayerRequests");
 
-    // ✅ Confirm Firebase Loaded
     console.log("✅ Firebase Loaded:", firebase);
 
     // ✅ DOM Elements
@@ -206,7 +150,6 @@
           date: new Date().toLocaleString()
         });
 
-        // ✅ Clear form
         nameInput.value = "";
         requestInput.value = "";
       }
@@ -215,17 +158,15 @@
     // ✅ Listen for Changes & Render Requests
     requestsRef.on("value", (snapshot) => {
       const data = snapshot.val();
-      prayerRequestsContainer.innerHTML = ""; // Clear existing requests
+      prayerRequestsContainer.innerHTML = "";
 
       if (data) {
         Object.entries(data).forEach(([id, requestObj]) => {
           const { name, text, date } = requestObj;
 
-          // ✅ Create request container
           const item = document.createElement("div");
           item.classList.add("prayer-item");
 
-          // ✅ Create header
           const header = document.createElement("div");
           header.classList.add("prayer-header");
 
@@ -238,12 +179,10 @@
           header.appendChild(nameHeading);
           header.appendChild(dateEl);
 
-          // ✅ Create request content
           const content = document.createElement("div");
           content.classList.add("prayer-content");
           content.textContent = text;
 
-          // ✅ Assemble elements
           item.appendChild(header);
           item.appendChild(content);
 
