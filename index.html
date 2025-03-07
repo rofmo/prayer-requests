@@ -197,8 +197,9 @@
       appId: "1:18312450201:web:9258cbcb87b384f2e42808"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database(app);
+
     const requestsRef = db.ref("prayerRequests");
 
     const prayerRequestForm = document.getElementById("prayerRequestForm");
