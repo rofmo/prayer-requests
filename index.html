@@ -1,257 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Prayer Requests</title>
-  <style>
-    /* ===================== Basic Reset & Styles ===================== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<script>
+  // ✅ Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
+    authDomain: "cp-prayer.firebaseapp.com",
+    databaseURL: "https://cp-prayer-default-rtdb.firebaseio.com",
+    projectId: "cp-prayer",
+    storageBucket: "cp-prayer.firebasestorage.app",
+    messagingSenderId: "18312450201",
+    appId: "1:18312450201:web:9258cbcb87b384f2e42808"
+  };
 
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      color: #333;
-    }
+  // ✅ Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const requestsRef = db.ref("prayerRequests");
 
-    header {
-      background-color: #f0f0f0;
-      padding: 1rem;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+  // ✅ DOM Elements
+  const prayerRequestForm = document.getElementById("prayerRequestForm");
+  const nameInput = document.getElementById("name");
+  const requestInput = document.getElementById("request");
+  const prayerRequestsContainer = document.getElementById("prayerRequestsContainer");
 
-    header h1 {
-      font-size: 1.75rem;
-      font-weight: normal;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 2rem auto;
-      padding: 1rem;
-      background-color: #fff;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-
-    .container h2 {
-      margin-bottom: 1rem;
-      font-size: 1.25rem;
-      border-bottom: 1px solid #e0e0e0;
-      padding-bottom: 0.5rem;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    form input[type="text"],
-    form textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      font-size: 1rem;
-    }
-
-    form button {
-      align-self: flex-start;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 3px;
-      background-color: #ccc;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    form button:hover {
-      background-color: #bbb;
-    }
-
-    .prayer-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .prayer-item {
-      background-color: #fafafa;
-      border: 1px solid #eee;
-      border-radius: 5px;
-      padding: 1rem;
-    }
-
-    .prayer-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .prayer-header h3 {
-      font-size: 1.1rem;
-      margin: 0;
-    }
-
-    .prayer-header p {
-      font-size: 0.85rem;
-      color: #777;
-      margin: 0;
-    }
-
-    .prayer-content {
-      white-space: pre-wrap;
-      margin-bottom: 0.75rem;
-    }
-
-    .prayer-actions button {
-      margin-right: 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 3px;
-      background-color: #e0e0e0;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .prayer-actions button:hover {
-      background-color: #ccc;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1rem 0;
-      background-color: #f0f0f0;
-      margin-top: 2rem;
-    }
-
-    footer p {
-      font-size: 0.9rem;
-      color: #777;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Prayer Requests</h1>
-  </header>
-
-  <div class="container">
-    <h2>Add a New Request</h2>
-    <form id="prayerRequestForm">
-      <input type="text" id="name" placeholder="Your Name" required />
-      <textarea id="request" rows="4" placeholder="Enter your prayer request..." required></textarea>
-      <button type="submit">Submit Request</button>
-    </form>
-
-    <h2>Current Requests</h2>
-    <div class="prayer-list" id="prayerRequestsContainer">
-      <!-- Prayer items will go here -->
+  const editModal = document.createElement("div");
+  editModal.style.display = "none";
+  editModal.innerHTML = `
+    <div class="modal-content">
+      <h3>Edit Your Prayer Request</h3>
+      <input type="text" id="editName" required />
+      <textarea id="editText" rows="4" required></textarea>
+      <button id="saveEdit">Save Changes</button>
+      <button id="closeEdit">Cancel</button>
     </div>
-  </div>
+  `;
+  document.body.appendChild(editModal);
+  
+  let currentEditId = null; // To track which request is being edited
 
-  <footer>
-    <p>Prayer Request App &copy; 2025</p>
-  </footer>
+  // ✅ Add New Prayer Request
+  prayerRequestForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const nameValue = nameInput.value.trim();
+    const requestValue = requestInput.value.trim();
 
-  <!-- ============== Firebase SDK (Fixed & Working) ============== -->
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-database-compat.js"></script>
+    if (nameValue && requestValue) {
+      const newRef = requestsRef.push();
+      newRef.set({
+        id: newRef.key,
+        name: nameValue,
+        text: requestValue,
+        date: new Date().toLocaleString()
+      });
 
+      nameInput.value = "";
+      requestInput.value = "";
+    }
+  });
 
-  <script>
-    // ✅ Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyB0uP44ahyB75D4mGAvWjTLe22gf6n5H70",
-      authDomain: "cp-prayer.firebaseapp.com",
-      databaseURL: "https://cp-prayer-default-rtdb.firebaseio.com",
-      projectId: "cp-prayer",
-      storageBucket: "cp-prayer.firebasestorage.app",
-      messagingSenderId: "18312450201",
-      appId: "1:18312450201:web:9258cbcb87b384f2e42808"
-    };
+  // ✅ Listen for Changes & Render Requests
+  requestsRef.on("value", (snapshot) => {
+    const data = snapshot.val();
+    prayerRequestsContainer.innerHTML = "";
 
-    // ✅ Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const requestsRef = db.ref("prayerRequests");
+    if (data) {
+      Object.entries(data).forEach(([id, requestObj]) => {
+        const { name, text, date } = requestObj;
 
-    // ✅ Confirm Firebase Loaded
-    console.log("✅ Firebase Loaded:", firebase);
+        const item = document.createElement("div");
+        item.classList.add("prayer-item");
 
-    // ✅ DOM Elements
-    const prayerRequestForm = document.getElementById("prayerRequestForm");
-    const nameInput = document.getElementById("name");
-    const requestInput = document.getElementById("request");
-    const prayerRequestsContainer = document.getElementById("prayerRequestsContainer");
+        const header = document.createElement("div");
+        header.classList.add("prayer-header");
 
-    // ✅ Add Prayer Request
-    prayerRequestForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const nameValue = nameInput.value.trim();
-      const requestValue = requestInput.value.trim();
+        const nameHeading = document.createElement("h3");
+        nameHeading.textContent = name || "Anonymous";
 
-      if (nameValue && requestValue) {
-        const newRef = requestsRef.push();
-        newRef.set({
-          name: nameValue,
-          text: requestValue,
-          date: new Date().toLocaleString()
+        const dateEl = document.createElement("p");
+        dateEl.textContent = date || "";
+
+        header.appendChild(nameHeading);
+        header.appendChild(dateEl);
+
+        const content = document.createElement("div");
+        content.classList.add("prayer-content");
+        content.textContent = text;
+
+        // ✅ Edit & Delete Buttons
+        const actions = document.createElement("div");
+        actions.classList.add("prayer-actions");
+
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.addEventListener("click", () => openEditModal(id, name, text));
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", () => {
+          if (confirm("Are you sure you want to delete this request?")) {
+            requestsRef.child(id).remove();
+          }
         });
 
-        // ✅ Clear form
-        nameInput.value = "";
-        requestInput.value = "";
-      }
-    });
+        actions.appendChild(editButton);
+        actions.appendChild(deleteButton);
 
-    // ✅ Listen for Changes & Render Requests
-    requestsRef.on("value", (snapshot) => {
-      const data = snapshot.val();
-      prayerRequestsContainer.innerHTML = ""; // Clear existing requests
+        item.appendChild(header);
+        item.appendChild(content);
+        item.appendChild(actions);
 
-      if (data) {
-        Object.entries(data).forEach(([id, requestObj]) => {
-          const { name, text, date } = requestObj;
+        prayerRequestsContainer.appendChild(item);
+      });
+    }
+  });
 
-          // ✅ Create request container
-          const item = document.createElement("div");
-          item.classList.add("prayer-item");
+  // ✅ Open Edit Modal
+  function openEditModal(id, name, text) {
+    currentEditId = id;
+    document.getElementById("editName").value = name;
+    document.getElementById("editText").value = text;
+    editModal.style.display = "block";
+  }
 
-          // ✅ Create header
-          const header = document.createElement("div");
-          header.classList.add("prayer-header");
+  // ✅ Close Edit Modal
+  document.getElementById("closeEdit").addEventListener("click", () => {
+    editModal.style.display = "none";
+  });
 
-          const nameHeading = document.createElement("h3");
-          nameHeading.textContent = name || "Anonymous";
+  // ✅ Save Edited Request
+  document.getElementById("saveEdit").addEventListener("click", () => {
+    const updatedName = document.getElementById("editName").value.trim();
+    const updatedText = document.getElementById("editText").value.trim();
 
-          const dateEl = document.createElement("p");
-          dateEl.textContent = date || "";
-
-          header.appendChild(nameHeading);
-          header.appendChild(dateEl);
-
-          // ✅ Create request content
-          const content = document.createElement("div");
-          content.classList.add("prayer-content");
-          content.textContent = text;
-
-          // ✅ Assemble elements
-          item.appendChild(header);
-          item.appendChild(content);
-
-          prayerRequestsContainer.appendChild(item);
-        });
-      }
-    });
-  </script>
-</body>
-</html>
+    if (currentEditId && updatedName && updatedText) {
+      requestsRef.child(currentEditId).update({
+        name: updatedName,
+        text: updatedText
+      }).then(() => {
+        editModal.style.display = "none";
+      });
+    }
+  });
+</script>
