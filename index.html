@@ -164,6 +164,7 @@
       <input type="text" id="editName" required />
       <textarea id="editText" rows="4" required></textarea>
       <button id="saveEdit">Save Changes</button>
+      <button id="closeEdit">Cancel</button>
     </div>
   </div>
 
@@ -219,7 +220,7 @@
           <div class="prayer-actions">
             <button onclick="editRequest('${id}', '${name}', '${text}')">Edit</button>
             <button onclick="deleteRequest('${id}')">Delete</button>
-            <button id="closeEdit">Cancel</button>
+        
           </div>
         `;
         prayerRequestsContainer.appendChild(item);
